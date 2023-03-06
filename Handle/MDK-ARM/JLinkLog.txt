@@ -1,0 +1,51 @@
+
+T3FCC 016:212 SEGGER J-Link V5.10h Log File (0000ms, 0000ms total)
+T3FCC 016:212 DLL Compiled: Jan 21 2016 19:24:29 (0000ms, 0000ms total)
+T3FCC 016:212 Logging started @ 2022-11-12 20:47 (0000ms, 0000ms total)
+T3FCC 016:212 JLINK_SetWarnOutHandler(...) (0000ms, 0000ms total)
+T3FCC 016:212 JLINK_OpenEx(...)
+  ***** Error: Can not connect to J-Link via USB.  returns "Can not connect to J-Link via USB." (0000ms, 0000ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 016:212 
+  ***** Error: Can not connect to J-Link via USB.JLINK_IsOpen()  returns 0x00 (0000ms, 0000ms total)
+T3FCC 020:240 JLINK_EMU_GetList(InterfaceMask = 0x00000001, MaxInfos = 0x00000004)   returns 0x00 (0001ms, 0001ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 020:243 
+  ***** Error: Can not connect to J-Link via USB.JLINK_IsOpen()  returns 0x00 (0000ms, 0001ms total)
+T3FCC 020:911 JLINK_EMU_GetList(InterfaceMask = 0x00000001, MaxInfos = 0x00000004)   returns 0x00 (0000ms, 0001ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 020:911 
+  ***** Error: Can not connect to J-Link via USB.JLINK_IsOpen()  returns 0x00 (0000ms, 0001ms total)
+T3FCC 021:303 JLINK_EMU_GetList(InterfaceMask = 0x00000001, MaxInfos = 0x00000004)   returns 0x00 (0000ms, 0001ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 021:303 
+  ***** Error: Can not connect to J-Link via USB.JLINK_IsOpen()  returns 0x00 (0000ms, 0001ms total)
+T3FCC 024:067 JLINK_EMU_GetList(InterfaceMask = 0x00000002, MaxInfos = 0x00000004)   returns 0x00 (0300ms, 0301ms total)
+T3FCC 024:367 JLINK_SelectIP(Host = "127.0.0.1", Port = 0)  returns 0x00 (0000ms, 0301ms total)
+T3FCC 024:367 JLINK_OpenEx(...)
+  ***** Error: Can not connect to J-Link via TCP/IP (127.0.0.1, port 19020)  returns "Can not connect to J-Link via TCP/IP (127.0.0.1, port 19020)" (1507ms, 1808ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 025:874 
+  ***** Error: Can not connect to J-Link via TCP/IP (127.0.0.1, port 19020)JLINK_IsOpen()  returns 0x00 (0000ms, 3309ms total)
+T3FCC 027:417 JLINK_EMU_GetList(InterfaceMask = 0x00000001, MaxInfos = 0x00000004)   returns 0x00 (0000ms, 3309ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 027:418 
+  ***** Error: Can not connect to J-Link via TCP/IP (127.0.0.1, port 19020)JLINK_IsOpen()  returns 0x00 (0000ms, 4814ms total)
+T3FCC 028:928 JLINK_EMU_GetList(InterfaceMask = 0x00000001, MaxInfos = 0x00000004)   returns 0x00 (0000ms, 4814ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 028:928 
+  ***** Error: Can not connect to J-Link via TCP/IP (127.0.0.1, port 19020)JLINK_IsOpen()  returns 0x00 (0000ms, 6316ms total)
+T3FCC 030:449 JLINK_EMU_GetList(InterfaceMask = 0x00000001, MaxInfos = 0x00000004)   returns 0x00 (0000ms, 6316ms total)
+
+  ***** API Error: API JLINK_GetHardwareVersion function called before JLINKARM_Open()
+T3FCC 030:449 
+  ***** Error: Can not connect to J-Link via TCP/IP (127.0.0.1, port 19020)JLINK_Close() (0000ms, 7822ms total)
+T3FCC 033:071  (0000ms, 7822ms total)
+T3FCC 033:071 Closed (0000ms, 7822ms total)
