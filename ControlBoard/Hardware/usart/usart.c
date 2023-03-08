@@ -59,3 +59,43 @@ void SerialWrite(UART_HandleTypeDef *huart,
 
 	HAL_UART_Transmit(huart, sendData, 8*28, 0xffff);
 }
+
+
+/**
+  * @brief HAL_UART_RxCpltCallback - USART2
+  * @param None
+  * @retval None
+  */
+char RxBuffer[256];
+uint8_t aRxBuffer;
+uint8_t Uart2_Rx_Cnt = 0;
+extern UART_HandleTypeDef huart2;
+extern uint16_t imu_pose[3];
+extern uint16_t imu_vel[3];
+extern uint16_t imu_acc[3];
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+ 
+	if(Uart2_Rx_Cnt >= 255)  //溢出判断
+	{
+		Uart2_Rx_Cnt = 0;
+		memset(RxBuffer,0x00,sizeof(RxBuffer));
+	}
+	else
+	{
+		RxBuffer[Uart2_Rx_Cnt++] = aRxBuffer;
+		
+		// do somthing ...
+		
+//		if((RxBuffer[Uart2_Rx_Cnt-1] == 0x0A) && (RxBuffer[Uart2_Rx_Cnt-2] == 0x0D)) //判断结束位
+//		{
+//			
+//			Uart2_Rx_Cnt = 0;
+//			memset(RxBuffer,0x00,sizeof(RxBuffer)); //清空数组
+//		}
+	}
+	
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)&aRxBuffer, 1);   //因为接收中断使用了一次即关闭，所以在最后加入这行代码即可实现无限使用
+}

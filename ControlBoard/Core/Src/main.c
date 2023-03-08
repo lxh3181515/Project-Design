@@ -24,6 +24,7 @@
 #include "can.h"
 #include "tim.h"
 #include "usart.h"
+#include "pid.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +48,7 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 // button
@@ -58,9 +60,15 @@ uint8_t botton_A, botton_B, botton_center;
 uint16_t rocker[4];
 
 // speed
-const uint8_t CONST_SPEED_0 = 0;
-const uint8_t CONST_SPEED_10 = 10;
+const uint8_t CONST_SPEED_NONE = 0;
+const uint8_t CONST_SPEED_SLOW = 10;
 
+// pose, angle_vel, angle_acc
+uint16_t imu_pose[3];
+uint16_t imu_vel[3];
+uint16_t imu_acc[3];
+
+extern uint8_t aRxBuffer;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,6 +78,7 @@ static void MX_CAN1_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -111,17 +120,24 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM5_Init();
   MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+	// Open CAN Interrupt
 	HAL_CAN_Start(&hcan1);
 	HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+	// Open TIMER
 	HAL_TIM_Base_Start(&htim4);
 	HAL_TIM_Base_Start(&htim5);
+	// Open PWM Output
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_2);
-	motorControl(&htim5, CONST_SPEED_0, 0);
-	motorControl(&htim5, CONST_SPEED_0, 1);
+	// Init ESC
+	motorControl(&htim5, CONST_SPEED_NONE, 0);
+	motorControl(&htim5, CONST_SPEED_NONE, 1);
+	// Open UART2 Interrupt
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)&aRxBuffer, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -136,14 +152,14 @@ int main(void)
 								 rocker);
 		
 		if (botton_LU == 0x00) {
-			motorControl(&htim5, CONST_SPEED_10, 0);
-			motorControl(&htim5, CONST_SPEED_10, 1);
+			motorControl(&htim5, CONST_SPEED_SLOW, 0);
+			motorControl(&htim5, CONST_SPEED_SLOW, 1);
 		} else if (botton_LD == 0x00) {
-			motorControl(&htim5, -CONST_SPEED_10, 0);
-			motorControl(&htim5, -CONST_SPEED_10, 1);
+			motorControl(&htim5, -CONST_SPEED_SLOW, 0);
+			motorControl(&htim5, -CONST_SPEED_SLOW, 1);
 		} else {
-			motorControl(&htim5, CONST_SPEED_0, 0);
-			motorControl(&htim5, CONST_SPEED_0, 1);
+			motorControl(&htim5, CONST_SPEED_NONE, 0);
+			motorControl(&htim5, CONST_SPEED_NONE, 1);
 		}
 		
 		HAL_Delay(50);
@@ -231,23 +247,7 @@ static void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
-	CAN_FilterTypeDef sFilterConfig;
-	
-	sFilterConfig.FilterBank = 0;
-	sFilterConfig.FilterIdHigh = 0;
-	sFilterConfig.FilterIdLow =  0;
-	sFilterConfig.FilterMaskIdHigh = 0;
-	sFilterConfig.FilterMaskIdLow = 0;
-	sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
-	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
-	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-	sFilterConfig.FilterActivation = ENABLE;
-	sFilterConfig.SlaveStartFilterBank = 14;
 
-	if(HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
-	{
-		Error_Handler();
-	}
   /* USER CODE END CAN1_Init 2 */
 
 }
@@ -408,6 +408,39 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 9600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 

@@ -2,6 +2,7 @@
 #define CONTROLBOARD_HARDWARE_USART_H_
 
 #include "main.h"
+#include "string.h"
 
 uint8_t SerialGetCrc8Value(uint8_t *data, uint8_t len);
 void SerialWrite(UART_HandleTypeDef *huart,

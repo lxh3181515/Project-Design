@@ -24,6 +24,7 @@
 "controlboard\can.o"
 "controlboard\tim.o"
 "controlboard\usart.o"
+"controlboard\pid.o"
 --strict --scatter "ControlBoard\ControlBoard.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
