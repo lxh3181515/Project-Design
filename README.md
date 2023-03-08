@@ -11,7 +11,7 @@
 
 - 2023.3.7，首次上传
 - 2023.3.8，ControlBoard代码增加PID函数、USART2配置和中断，增加电路原理图、IMU数据手册
+- 2023.3.8，ControlBoard代码增加读取IMU函数
 
 ## To Do
-- ControlBoard工程中，根据IMU数据格式编写串口接收中断
 - IMU到货后进行调试
