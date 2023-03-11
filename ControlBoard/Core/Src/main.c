@@ -59,15 +59,6 @@ uint8_t botton_A, botton_B, botton_center;
 // rocker
 uint16_t rocker[4];
 
-// speed
-const uint8_t CONST_SPEED_NONE = 0;
-const uint8_t CONST_SPEED_SLOW = 10;
-
-// pose, angle_vel, angle_acc
-uint16_t imu_pose[3];
-uint16_t imu_vel[3];
-uint16_t imu_acc[3];
-
 extern uint8_t aRxBuffer;
 /* USER CODE END PV */
 
@@ -95,6 +86,11 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+
+	const uint8_t MOTOR_SPEED_NONE = 0;
+	const uint8_t MOTOR_SPEED_LOW = 20;
+	const uint8_t SERVO_ANGLE_NONE =0;
+	const uint8_t SERVO_ANGLE_LOW = 30;
 
   /* USER CODE END 1 */
 
@@ -134,8 +130,10 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_2);
 	// Init ESC
-	motorControl(&htim5, CONST_SPEED_NONE, 0);
-	motorControl(&htim5, CONST_SPEED_NONE, 1);
+	motorControl(&htim5, MOTOR_SPEED_NONE, 0);
+	motorControl(&htim5, MOTOR_SPEED_NONE, 1);
+	servoControl(&htim4, SERVO_ANGLE_NONE, 0);
+	servoControl(&htim4, SERVO_ANGLE_NONE, 1);
 	// Open UART2 Interrupt
 	HAL_UART_Receive_IT(&huart2, (uint8_t *)&aRxBuffer, 1);
   /* USER CODE END 2 */
@@ -151,16 +149,48 @@ int main(void)
 								 botton_A, botton_B, botton_center,
 								 rocker);
 		
-		if (botton_LU == 0x00) {
-			motorControl(&htim5, CONST_SPEED_SLOW, 0);
-			motorControl(&htim5, CONST_SPEED_SLOW, 1);
-		} else if (botton_LD == 0x00) {
-			motorControl(&htim5, -CONST_SPEED_SLOW, 0);
-			motorControl(&htim5, -CONST_SPEED_SLOW, 1);
-		} else {
-			motorControl(&htim5, CONST_SPEED_NONE, 0);
-			motorControl(&htim5, CONST_SPEED_NONE, 1);
+		if(botton_LU == 0x00)
+		{
+			motorControl(&htim5, MOTOR_SPEED_LOW, 0);
+			motorControl(&htim5, -MOTOR_SPEED_LOW, 1);
+		} 
+		else if(botton_LD == 0x00) 
+		{
+			motorControl(&htim5, -MOTOR_SPEED_LOW, 0);
+			motorControl(&htim5, MOTOR_SPEED_LOW, 1);
 		}
+		else if(botton_LL == 0x00)
+		{
+			motorControl(&htim5, -MOTOR_SPEED_LOW, 0);
+			motorControl(&htim5, -MOTOR_SPEED_LOW, 1);
+		}
+		else if(botton_LR == 0x00)
+		{
+			motorControl(&htim5, MOTOR_SPEED_LOW, 0);
+			motorControl(&htim5, MOTOR_SPEED_LOW, 1);
+		}
+		else
+		{
+			motorControl(&htim5, MOTOR_SPEED_NONE, 0);
+			motorControl(&htim5, MOTOR_SPEED_NONE, 1);
+		}
+		
+		if(botton_RU == 0x00)
+		{
+			servoControl(&htim4, -SERVO_ANGLE_LOW, 0);
+			servoControl(&htim4, -SERVO_ANGLE_LOW, 1);
+		}
+		else if(botton_RD == 0x00)
+		{
+			servoControl(&htim4, SERVO_ANGLE_LOW, 0);
+			servoControl(&htim4, SERVO_ANGLE_LOW, 1);
+		}
+		else
+		{
+			servoControl(&htim4, SERVO_ANGLE_NONE, 0);
+			servoControl(&htim4, SERVO_ANGLE_NONE, 1);
+		}
+
 		
 		HAL_Delay(50);
     /* USER CODE END WHILE */
@@ -247,7 +277,23 @@ static void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
+	CAN_FilterTypeDef sFilterConfig;
+	
+	sFilterConfig.FilterBank = 0;
+	sFilterConfig.FilterIdHigh = 0;
+	sFilterConfig.FilterIdLow =  0;
+	sFilterConfig.FilterMaskIdHigh = 0;
+	sFilterConfig.FilterMaskIdLow = 0;
+	sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
+	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+	sFilterConfig.FilterActivation = ENABLE;
+	sFilterConfig.SlaveStartFilterBank = 14;
 
+	if(HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
   /* USER CODE END CAN1_Init 2 */
 
 }
@@ -427,7 +473,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 9600;
+  huart2.Init.BaudRate = 115200;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;

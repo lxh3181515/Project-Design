@@ -63,11 +63,12 @@ IMU imu; // imu结构体
 unsigned char  ImuReceiveBuff[10] = {0}; // 包括数据头不包括校验和
 const short ImudataLength   = 8; // 不包括数据头和校验和的数据个数
 unsigned char ImuReceiver = 0; // 用于接收数据
+unsigned char ImuReceiverFront   = 0; // 接受的数据的上一个 用于判断数据头
 unsigned char aRxBuffer; // 串口接收变量
 void Get_ImuData(void)
 {
 	static short ImuReceiveDataNum = 0; //用于记录目前接受了的数据个数
-	static unsigned char ImuReceiverFront   = 0; // 接受的数据的上一个 用于判断数据头
+	
 	static unsigned char Flag = WaitingGetImu; // 标志位
 	
 	ImuReceiver = aRxBuffer;   
@@ -119,11 +120,7 @@ void Get_ImuData(void)
 		else
 		{
 			//检验校验和
-			if(ImuReceiver != ImuCountSum(&ImuReceiveBuff[0],ImudataLength+2))
-			{
-				return;
-			}
-			else
+			if(ImuReceiver == ImuCountSum(&ImuReceiveBuff[0],ImudataLength+2))
 			{
 				//赋值
 				switch(Flag)

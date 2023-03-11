@@ -3,16 +3,23 @@
 
 /**
 	* @brief Control Servo
-  * @param timer 4, angle(0~180), num(0 or 1)
+  * @param timer 4, angle(-90~90), num(0 or 1)
   * @retval None 
   */
-void servoControl(TIM_HandleTypeDef *htim, uint8_t angle, uint8_t num) {
-	if (angle < 0 || angle > 180 || num > 1 || num < 0) {
+void servoControl(TIM_HandleTypeDef *htim, int angle, uint8_t num) {
+	if (angle < -90 || angle > 90) {
+		return;
+	}
+	if (num !=1 && num != 0){
 		return;
 	}
 	
+	angle = angle + 90; //ÁãÎ»ÊÇ90
+	if(num == 1) angle = 180 - angle;
+		
 	float cmp_val;
-	cmp_val = 10.0 * angle / 9.0 + 50.0; // 50 ~ 2500
+	cmp_val = 10.0 * angle / 9.0 + 50.0; // 50 ~ 250
+	
 	
 	if (num == 0) { // No.0 -> CH1
 		__HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, (uint16_t)cmp_val);
@@ -29,7 +36,10 @@ void servoControl(TIM_HandleTypeDef *htim, uint8_t angle, uint8_t num) {
   * @retval None 
   */
 void motorControl(TIM_HandleTypeDef *htim, int speed, uint8_t num) {
-	if (speed < -100 || speed > 100 || num > 1 || num < 0) {
+	if (speed < -100 || speed > 100) {
+		return;
+	}
+	if (num !=1 && num != 0){
 		return;
 	}
 	
