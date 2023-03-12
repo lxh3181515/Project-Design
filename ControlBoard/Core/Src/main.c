@@ -57,7 +57,7 @@ uint8_t botton_RU, botton_RD, botton_RL, botton_RR;
 uint8_t botton_top_LT, botton_top_LB, botton_top_RT, botton_top_RB;
 uint8_t botton_A, botton_B, botton_center;
 // rocker
-uint16_t rocker[4];
+uint16_t rocker[4]; //01是右摇杆 23是左摇杆
 
 extern uint8_t aRxBuffer;
 /* USER CODE END PV */
@@ -86,11 +86,17 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	
+	// 电机速度 舵机角度
 	const uint8_t MOTOR_SPEED_NONE = 0;
 	const uint8_t MOTOR_SPEED_LOW = 20;
 	const uint8_t SERVO_ANGLE_NONE =0;
 	const uint8_t SERVO_ANGLE_LOW = 30;
+	
+	// 按钮 摇杆
+	const uint8_t BUTTON_PRESS = 0x00;
+	const uint16_t ROCKER_THRESHOLD_MAX = 3000; // 摇杆值为0-3400 超过这个值则认为触发
+	const uint16_t ROCKER_THRESHOLD_MIN = 400; // 摇杆值为0-3400 超过这个值则认为触发
 
   /* USER CODE END 1 */
 
@@ -140,8 +146,19 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	
+	// 控制模式
+	enum controlMode
+	{
+		PidControl,// PID控制
+		ConstValueControl, //定值控制
+		Stop, //停止
+	};
+	int controlmode = ConstValueControl;
+	
   while (1)
   {
+		// 发送手柄数据
 		SerialWrite(&huart1,
 								 botton_LU, botton_LD, botton_LL, botton_LR,
 								 botton_RU, botton_RD, botton_RL, botton_RR,
@@ -149,48 +166,94 @@ int main(void)
 								 botton_A, botton_B, botton_center,
 								 rocker);
 		
-		if(botton_LU == 0x00)
+		// 摇杆值定义
+		uint16_t left_rocker_x = rocker[3];
+		uint16_t left_rocker_y = rocker[2];
+		uint16_t right_rocker_x = rocker[1];
+		uint16_t right_rocker_y = rocker[0];
+		
+		// 确定控制模式
+		if(botton_A == BUTTON_PRESS)
 		{
-			motorControl(&htim5, MOTOR_SPEED_LOW, 0);
-			motorControl(&htim5, -MOTOR_SPEED_LOW, 1);
-		} 
-		else if(botton_LD == 0x00) 
-		{
-			motorControl(&htim5, -MOTOR_SPEED_LOW, 0);
-			motorControl(&htim5, MOTOR_SPEED_LOW, 1);
+			controlmode = ConstValueControl;
 		}
-		else if(botton_LL == 0x00)
+		if(botton_B == BUTTON_PRESS)
 		{
-			motorControl(&htim5, -MOTOR_SPEED_LOW, 0);
-			motorControl(&htim5, -MOTOR_SPEED_LOW, 1);
+			controlmode = PidControl;
 		}
-		else if(botton_LR == 0x00)
+		if(botton_center == BUTTON_PRESS)
 		{
-			motorControl(&htim5, MOTOR_SPEED_LOW, 0);
-			motorControl(&htim5, MOTOR_SPEED_LOW, 1);
+			controlmode = Stop;
 		}
-		else
+		
+		//定值控制
+		if(controlmode == ConstValueControl)
+		{
+			// 电机控制
+			if(botton_LU == BUTTON_PRESS  || left_rocker_y > ROCKER_THRESHOLD_MAX) //向前
+			{
+				motorControl(&htim5, MOTOR_SPEED_LOW, 0);
+				motorControl(&htim5, -MOTOR_SPEED_LOW, 1);
+			} 
+			else if(botton_LD == BUTTON_PRESS || left_rocker_y < ROCKER_THRESHOLD_MIN) //向后
+			{
+				motorControl(&htim5, -MOTOR_SPEED_LOW, 0);
+				motorControl(&htim5, MOTOR_SPEED_LOW, 1);
+			}
+			else if(botton_LL == BUTTON_PRESS || left_rocker_x < ROCKER_THRESHOLD_MIN) //向左
+			{
+				motorControl(&htim5, -MOTOR_SPEED_LOW, 0);
+				motorControl(&htim5, -MOTOR_SPEED_LOW, 1);
+			}
+			else if(botton_LR == BUTTON_PRESS || left_rocker_x > ROCKER_THRESHOLD_MAX) //向右
+			{
+				motorControl(&htim5, MOTOR_SPEED_LOW, 0);
+				motorControl(&htim5, MOTOR_SPEED_LOW, 1);
+			}
+			else //没有按下则停止
+			{
+				motorControl(&htim5, MOTOR_SPEED_NONE, 0);
+				motorControl(&htim5, MOTOR_SPEED_NONE, 1);
+			}
+			
+			//舵机控制		
+			if(botton_RU == BUTTON_PRESS || right_rocker_y > ROCKER_THRESHOLD_MAX) //上仰
+			{
+				servoControl(&htim4, -SERVO_ANGLE_LOW, 0);
+				servoControl(&htim4, -SERVO_ANGLE_LOW, 1);
+			}
+			else if(botton_RD == BUTTON_PRESS || right_rocker_y < ROCKER_THRESHOLD_MIN) //下潜
+			{
+				servoControl(&htim4, SERVO_ANGLE_LOW, 0);
+				servoControl(&htim4, SERVO_ANGLE_LOW, 1);
+			}
+			else if(botton_RL == BUTTON_PRESS || right_rocker_x < ROCKER_THRESHOLD_MIN) //左滚
+			{
+			
+			}
+			else if(botton_RR == BUTTON_PRESS || right_rocker_x > ROCKER_THRESHOLD_MAX) //右滚
+			{
+				
+			}				
+			else
+			{
+				servoControl(&htim4, SERVO_ANGLE_NONE, 0);
+				servoControl(&htim4, SERVO_ANGLE_NONE, 1);
+			}
+			
+		}
+		// PID控制
+		else if(controlmode == PidControl)
+		{
+			
+		}
+		else if(controlmode == Stop)
 		{
 			motorControl(&htim5, MOTOR_SPEED_NONE, 0);
 			motorControl(&htim5, MOTOR_SPEED_NONE, 1);
-		}
-		
-		if(botton_RU == 0x00)
-		{
-			servoControl(&htim4, -SERVO_ANGLE_LOW, 0);
-			servoControl(&htim4, -SERVO_ANGLE_LOW, 1);
-		}
-		else if(botton_RD == 0x00)
-		{
-			servoControl(&htim4, SERVO_ANGLE_LOW, 0);
-			servoControl(&htim4, SERVO_ANGLE_LOW, 1);
-		}
-		else
-		{
 			servoControl(&htim4, SERVO_ANGLE_NONE, 0);
-			servoControl(&htim4, SERVO_ANGLE_NONE, 1);
+			servoControl(&htim4, SERVO_ANGLE_NONE, 1);		
 		}
-
 		
 		HAL_Delay(50);
     /* USER CODE END WHILE */
